@@ -8,7 +8,7 @@ parse_str(implode('&', array_slice($argv, 1)), $cmd);
 $oper = $argv[1];
 if (isset($cmd['--computer'])) { $computer  = $cmd['--computer']; } else { $computer = "."; }
 
-if ($oper == "namespace")
+if ($oper == "namespaces")
 {
 	$spaces = Array();
 	WMINameSpaces($spaces,$computer,"root");
@@ -75,7 +75,34 @@ if ($oper == "generate")
 	}
 	die();
 }
-echo "usage: wmi2php oper [--computer=computername] [additional parameters]";
+echo <<<EOT
+usage: wmi2php oper [--computer=computername] [additional parameters]
+
+If computer is not specified, the local system will be used.
+
+namespaces [--computer=computername]
+Prints a list of WMI namespaces
+example: wmi2php.php namespaces
+
+classes --namespace=namespace [--computer=computername]
+Prints a list of WMI classes for a given namespace.
+example: wmi2php.php classes --namespace=root/CIMV2
+
+properties --namespace=namespace --class=classname [--computer=computername]
+Prints a list of properties for the given WMI object
+example: wmi2php.php properties --namespace=root/CIMV2 --class=Win32_ComputerSystem
+
+methods --namespace=namespace --class=classname [--computer=computername]
+Prints a list of methods for the given WMI object
+example: wmi2php.php methods --namespace=root/CIMV2 --class=Win32_ComputerSystem
+
+generate --namespace=namespace [--class=classname] [--output=path]
+	[--computer=computername]
+Generates a PHP class file for the given namespace. If class is not s file is
+generated for every class in the namespace. If output is not specified, the
+namespace is used as output dir.
+example: wmi2php.php generate --namespace=root/CIMV2 --class=Win32_ComputerSystem
+EOT;
 function Generate_Overload($computer,$namespace,$class)
 {
 	$data = file_get_contents("SkeletonOverload.php");
