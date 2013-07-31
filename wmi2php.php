@@ -36,12 +36,75 @@ if ($oper == "classes")
 
 if ($oper == "properties")
 {
-	
+	$res = WMIEnumerate($computer,$cmd['--namespace'],$cmd['--class'],"property");
+	foreach ($res as $r) { echo "$r\n"; }
+	die();
 }
 
+if ($oper == "methods")
+{
+	$res = WMIEnumerate($computer,$cmd['--namespace'],$cmd['--class'],"method");
+	foreach ($res as $r) { echo "$r\n"; }
+	die();
+}
+if ($oper == "generate")
+{
+	if (!$cmd['--namespace'])
+	{
+		echo "usage php wmi2php.php generate --namespace=namespacename [--computer=computername] [--class=classname]\n";
+		die();
+	}
+	if (isset($cmd['--class']))
+	{
+		$classes=Array($cmd['--class']);
+	} 
+	else 
+	{ 
+		$classes = WMIClasses($computer,$cmd['--namespace']);
+	}
+	$namespace = substr($cmd['--namespace'],strrpos($cmd['--namespace'],"/")+1);
+
+	if (!file_exists($namespace))
+	{
+		mkdir($namespace);
+	}
+	foreach ($classes as $class)
+	{
+		$data = Generate_Overload($computer,$cmd['--namespace'],$class);
+		file_put_contents("$namespace/$class.php",$data);
+	}
+	die();
+}
+echo "usage: wmi2php oper [--computer=computername] [additional parameters]";
+function Generate_Overload($computer,$namespace,$class)
+{
+	$data = file_get_contents("SkeletonOverload.php");
+	$data = str_replace("__classname",$class,$data);
+	
+	$properties = WMIEnumerate($computer,$namespace,$class,"property");
+	$properties = "'" . implode("','",$properties) . "'";
+	$properties = str_replace(",",",\n\t\t",$properties);
+	$data = str_replace("__properties",$properties,$data);
+
+	$methods = WMIEnumerate($computer,$namespace,$class,"method");
+	$methods = "'" . implode("','",$methods) . "'";
+	$methods = str_replace(",",",\n\t\t",$methods);
+	$data = str_replace("__methods",$methods,$data);
+
+	return $data;
+}
 function WMIEnumerate($computer,$namespace,$classname,$itemtype)
 {
-	$obj = new COM("winmgmts://$computer/$namespace");
+	$wmi = new COM("winmgmts://$computer/$namespace");
+	$obj = $wmi->Get($classname);
+	$out = Array();
+	if ($itemtype == "method") { $col = $obj->Methods_; }
+	if ($itemtype == "property") { $col = $obj->Properties_; }
+	foreach ($col as $i)
+	{
+		array_push($out,$i->Name);
+	}
+	return $out;
 }
 function WMINameSpaces(&$spaces,$computer,$name)
 {
