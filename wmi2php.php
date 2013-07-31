@@ -63,15 +63,15 @@ if ($oper == "generate")
 		$classes = WMIClasses($computer,$cmd['--namespace']);
 	}
 	$namespace = substr($cmd['--namespace'],strrpos($cmd['--namespace'],"/")+1);
-
-	if (!file_exists($namespace))
+	if (isset($cmd['--output'])) { $output  = $cmd['--output']; } else { $computer = $namespace; }
+	if (!file_exists($output))
 	{
-		mkdir($namespace);
+		mkdir($output);
 	}
 	foreach ($classes as $class)
 	{
 		$data = Generate_Overload($computer,$cmd['--namespace'],$class);
-		file_put_contents("$namespace/$class.php",$data);
+		file_put_contents("$output/$class.php",$data);
 	}
 	die();
 }
