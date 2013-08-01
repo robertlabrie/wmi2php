@@ -135,7 +135,7 @@ function GenerateNative($computer,$namespace,$class)
 	$data = file_get_contents(__DIR__ . "\SkeletonNative.php");
 	$data = str_replace("__classname",$class,$data);
 	$methodskel = 'public function __method() { return $this->obj->__method(); }';
-	$propertyskel = 'private $__property;';
+	$propertyskel = 'protected $__property;';
 	//first do the property validation array
 	$properties = WMIEnumerate($computer,$namespace,$class,"property");
 	$properties = "'" . implode("','",$properties) . "'";

@@ -1,7 +1,7 @@
 <?php
 class __classname
 {
-	private $obj;
+	protected $obj;
 	__properties
 	private $properties = Array(
 		__properties_array

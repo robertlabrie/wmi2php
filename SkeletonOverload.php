@@ -7,7 +7,7 @@ class __classname
 	private $methods = Array(
 		__methods
 	);
-	private $obj;
+	protected $obj;
 	public function __construct($obj)
 	{
 		$this->obj = $obj;
