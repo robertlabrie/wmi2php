@@ -115,7 +115,7 @@ example: wmi2php.php generate --namespace=root/CIMV2 --class=Win32_ComputerSyste
 EOT;
 function GenerateOverload($computer,$namespace,$class)
 {
-	$data = file_get_contents("SkeletonOverload.php");
+	$data = file_get_contents(__DIR__ . "\SkeletonOverload.php");
 	$data = str_replace("__classname",$class,$data);
 	
 	$properties = WMIEnumerate($computer,$namespace,$class,"property");
@@ -132,7 +132,7 @@ function GenerateOverload($computer,$namespace,$class)
 }
 function GenerateNative($computer,$namespace,$class)
 {
-	$data = file_get_contents("SkeletonNative.php");
+	$data = file_get_contents(__DIR__ . "\SkeletonNative.php");
 	$data = str_replace("__classname",$class,$data);
 	$methodskel = 'public function __method() { return $this->obj->__method(); }';
 	$propertyskel = 'private $__property;';
