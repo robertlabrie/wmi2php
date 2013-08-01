@@ -127,6 +127,7 @@ function GenerateOverload($computer,$namespace,$class)
 	$methods = "'" . implode("','",$methods) . "'";
 	$methods = str_replace(",",",\n\t\t",$methods);
 	$data = str_replace("__methods",$methods,$data);
+	$data = str_replace("__namespace",substr($namespace,strrpos($namespace,"/")+1),$data);
 
 	return $data;
 }
@@ -159,6 +160,7 @@ function GenerateNative($computer,$namespace,$class)
 		$methodout .= str_replace("__method",$method,$methodskel) . "\n\t";
 	}
 	$data = str_replace("__methods",$methodout,$data);
+	$data = str_replace("__namespace",substr($namespace,strrpos($namespace,"/")+1),$data);
 	return $data;
 }
 function WMIEnumerate($computer,$namespace,$classname,$itemtype)

@@ -1,4 +1,5 @@
 <?php
+namespace __namespace;
 class __classname
 {
 	protected $obj;
