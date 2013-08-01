@@ -63,15 +63,24 @@ if ($oper == "generate")
 		$classes = WMIClasses($computer,$cmd['--namespace']);
 	}
 	$namespace = substr($cmd['--namespace'],strrpos($cmd['--namespace'],"/")+1);
-	if (isset($cmd['--output'])) { $output  = $cmd['--output']; } else { $computer = $namespace; }
+	if (isset($cmd['--output'])) { $output  = $cmd['--output']; } else { $output = $namespace; }
+	if (isset($cmd['--mode'])) { $mode  = $cmd['--mode']; } else { $mode = "overload"; }
 	if (!file_exists($output))
 	{
 		mkdir($output);
 	}
 	foreach ($classes as $class)
 	{
-		$data = Generate_Overload($computer,$cmd['--namespace'],$class);
-		file_put_contents("$output/$class.php",$data);
+		if ($mode == "overload")
+		{
+			$data = GenerateOverload($computer,$cmd['--namespace'],$class);
+			file_put_contents("$output/$class.php",$data);
+		}
+		if ($mode == "native")
+		{
+			$data = GenerateNative($computer,$cmd['--namespace'],$class);
+			file_put_contents("$output/$class.php",$data);
+		}
 	}
 	die();
 }
@@ -97,13 +106,14 @@ Prints a list of methods for the given WMI object
 example: wmi2php.php methods --namespace=root/CIMV2 --class=Win32_ComputerSystem
 
 generate --namespace=namespace [--class=classname] [--output=path]
-	[--computer=computername]
+	[--computer=computername] [--mode=overload]
 Generates a PHP class file for the given namespace. If class is not s file is
 generated for every class in the namespace. If output is not specified, the
-namespace is used as output dir.
+namespace is used as output dir. If mode is not specified, the overload
+skeleton is used
 example: wmi2php.php generate --namespace=root/CIMV2 --class=Win32_ComputerSystem
 EOT;
-function Generate_Overload($computer,$namespace,$class)
+function GenerateOverload($computer,$namespace,$class)
 {
 	$data = file_get_contents("SkeletonOverload.php");
 	$data = str_replace("__classname",$class,$data);
@@ -118,6 +128,37 @@ function Generate_Overload($computer,$namespace,$class)
 	$methods = str_replace(",",",\n\t\t",$methods);
 	$data = str_replace("__methods",$methods,$data);
 
+	return $data;
+}
+function GenerateNative($computer,$namespace,$class)
+{
+	$data = file_get_contents("SkeletonNative.php");
+	$data = str_replace("__classname",$class,$data);
+	$methodskel = 'public function __method() { return $this->obj->__method(); }';
+	$propertyskel = 'private $__property;';
+	//first do the property validation array
+	$properties = WMIEnumerate($computer,$namespace,$class,"property");
+	$properties = "'" . implode("','",$properties) . "'";
+	$properties = str_replace(",",",\n\t\t",$properties);
+	$data = str_replace("__properties_array",$properties,$data);
+
+	//now do this discreet properties
+	$properties = WMIEnumerate($computer,$namespace,$class,"property");
+	$propertyout = "";
+	foreach ($properties as $property)
+	{
+		$propertyout .= str_replace("__property",$property,$propertyskel) . "\n\t";
+	}
+	$data = str_replace("__properties",$propertyout,$data);
+	
+	//do the methods
+	$methods = WMIEnumerate($computer,$namespace,$class,"method");
+	$methodout = "";
+	foreach ($methods as $method)
+	{
+		$methodout .= str_replace("__method",$method,$methodskel) . "\n\t";
+	}
+	$data = str_replace("__methods",$methodout,$data);
 	return $data;
 }
 function WMIEnumerate($computer,$namespace,$classname,$itemtype)
