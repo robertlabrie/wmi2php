@@ -2,7 +2,7 @@
 namespace __namespace;
 class __classname
 {
-	private $properties = Array(
+	protected $properties = Array(
 		__properties
 	);
 	private $methods = Array(
